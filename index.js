@@ -23,6 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         const userCollection = client.db('aircnc').collection('users');
+        const bookingCollection = client.db('aircnc').collection('bookings');
 
         app.put('/user/:email', async (req, res) => {
             const { email } = req.params;
@@ -33,11 +34,18 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            console.log(result);
+            // console.log(result);
 
             const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1d' });
-            console.log(token);
+            // console.log(token);
             res.send({ result, token });
+
+            app.post('/bookings', async (req, res) => {
+                const bookingData = req.body;
+                const result = await bookingCollection.insertOne(bookingData);
+                console.log(result);
+                res.send(result);
+            });
 
             console.log('Database Connected');
         });
