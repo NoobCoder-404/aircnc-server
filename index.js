@@ -1,5 +1,5 @@
+/* eslint-disable no-shadow */
 /* eslint-disable no-empty */
-/* eslint-disable no-unused-vars */
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.rqwof3p.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+// console.log(uri);
 const client = new MongoClient(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -39,16 +39,30 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1d' });
             // console.log(token);
             res.send({ result, token });
-
-            app.post('/bookings', async (req, res) => {
-                const bookingData = req.body;
-                const result = await bookingCollection.insertOne(bookingData);
-                console.log(result);
-                res.send(result);
-            });
-
-            console.log('Database Connected');
         });
+
+        app.post('/bookings', async (req, res) => {
+            const bookingData = req.body;
+            const result = await bookingCollection.insertOne(bookingData);
+            console.log(result);
+            res.send(result);
+        });
+
+        app.get('/bookings', async (req, res) => {
+            let query = {};
+            const { email } = req.query;
+            if (email) {
+                query = {
+                    guestEmail: email,
+                };
+            }
+            // const bookings = await bookingsCollection.find(query).toArray();
+            const cursor = bookingCollection.find(query);
+            const bookings = await cursor.toArray();
+            res.send(bookings);
+        });
+
+        console.log('Database Connected');
     } finally {
     }
 }
